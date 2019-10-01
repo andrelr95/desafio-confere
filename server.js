@@ -4,7 +4,11 @@ var port = process.env.PORT || 3000;
 
 app.get('/status', (req, res) => {
   res.status(200);
-  res.send({ status: 200, message: 'Online' });
+  res.send({ status: 200, message: 'Ok' });
+});
+
+app.get('/transactions', (req, res) => {
+  res.status(200);
 });
 
 app.listen(port, () => {
