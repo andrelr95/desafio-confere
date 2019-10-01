@@ -2,18 +2,39 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
-  value: Number,
-  description: String,
+  value: {
+    type: Number,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
   type: {
     type: String,
+    required: true,
     enum: ['debit', 'credit', 'installment_credit']
   },
-  installments: Number,
+  installments: {
+    type: Number
+  },
   card: {
-    number: String,
-    expiry: String,
-    ccv: String,
-    holder: String
+    number: {
+      type: String,
+      required: true
+    },
+    expiry: {
+      type: String,
+      required: true
+    },
+    cvv: {
+      type: String,
+      required: true
+    },
+    holder: {
+      type: String,
+      required: true
+    }
   }
 });
 
