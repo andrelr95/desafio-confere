@@ -9,6 +9,8 @@ const chaiHttp = require('chai-http');
 const app = require('./../../server');
 const sinon = require('sinon');
 
+const basePath = `/api/v1`; //<- To be /${BASE_PATH}/${VERSION}
+
 const opts = { useNewUrlParser: true, useUnifiedTopology: true };
 const expect = chai.expect;
 let mongoServer;
@@ -25,10 +27,17 @@ mocha.before(done => {
       });
     })
     .then(async () => {
-      await Transaction.insertMany(transactionJson);
+      // await Transaction.insertMany(transactionJson);
       done();
     });
   // TransactionMock.find = async () => transactionJson;
+});
+
+mocha.beforeEach(done => {
+  Transaction.remove({}).then(async () => {
+    await Transaction.insertMany(transactionJson);
+  });
+  done();
 });
 
 mocha.after(async () => {
@@ -36,60 +45,107 @@ mocha.after(async () => {
   await mongoServer.stop();
 });
 
-mocha.describe('Tests for Transaction Model', () => {
-  mocha.describe('Unit tests for mongoose model "Transaction"', () => {
-    mocha.it('exists', async () => {
+mocha.describe('Unit tests for Transaction', () => {
+  mocha.describe('Unit - Mongoose - Model', () => {
+    mocha.it('Unit - exists', async () => {
       const modelName = Transaction.modelName;
       expect(modelName).to.equal('Transaction');
     });
 
-    mocha.it('inserts into database and deletes', async () => {
-      let count;
-      count = await Transaction.countDocuments();
-      expect(count).to.equal(5); //already initiated with 5 documents
-      const result = await Transaction.create({
-        value: 100.0,
-        description: 'Teste',
-        type: 'debit',
-        installments: null,
-        card: {
-          number: '5200555500000000',
-          expiry: '08/21',
-          cvv: '333',
-          holder: 'Fulano de talos'
-        }
-      });
-      count = await Transaction.countDocuments();
-      expect(result).to.contain.property('_id');
-      expect(count).to.equal(6);
-      const deleted = await Transaction.findByIdAndDelete(result._id);
-      count = await Transaction.countDocuments();
-      expect(deleted).to.contain.property('_id');
-      expect(count).to.equal(5);
-    });
-
-    mocha.it('retrieves data from database', async () => {
+    mocha.it('Unit - retrieves data from database', async () => {
       const data = await Transaction.find();
       expect(data).to.length(5);
     });
   });
-
-  mocha.describe('Unit tests for "/transactions" resource', () => {
-    mocha.it('calls GET /transactions and receives its data', done => {
+  mocha.describe('Unit APP - "/transactions" resource', () => {
+    mocha.it('Unit - calls GET "/transactions" and receives its data', done => {
       sinon.stub(Transaction, 'find').callsFake(() => {
         return transactionJson;
       });
-
       chai
         .request(app)
-        .get('/transactions')
+        .get(`${basePath}/transactions`)
         .end((err, res) => {
           const { body, status } = res;
-          console.log(body);
           expect(status).to.equal(200);
           expect(body).to.length(5);
           done();
         });
     });
+
+    mocha.it(
+      'Unit - calls POST "/transactions" and saves data correclty',
+      done => {
+        sinon.stub(Transaction, 'create').callsFake(() => {
+          return {
+            card: {
+              number: '5200555500005555',
+              expiry: '02/21',
+              cvv: '432',
+              holder: 'Tal de Ferreira'
+            },
+            _id: '5d94b7ded125030d30925750',
+            value: 999,
+            description: 'Item do teste do POST',
+            type: 'debit',
+            installments: null,
+            __v: 0
+          };
+        });
+        chai
+          .request(app)
+          .post(`${basePath}/transactions`)
+          .send({
+            value: 999.0,
+            description: 'Item do teste do POST',
+            type: 'debit',
+            installments: null,
+            card: {
+              number: '5200555500005555',
+              expiry: '02/21',
+              cvv: '432',
+              holder: 'Tal de Ferreira'
+            }
+          })
+          .end((err, res) => {
+            expect(res.status).to.equal(201);
+            expect(res.body).to.contain.property('_id');
+            done();
+          });
+      }
+    );
+
+    mocha.it(
+      'Unit - calls GET "/transactions/:id" and retrieve a single data from ID',
+      done => {
+        sinon.stub(Transaction, 'findById').callsFake(() => {
+          return {
+            card: {
+              number: '5200555500005555',
+              expiry: '02/21',
+              cvv: '432',
+              holder: 'Tal de Ferreira'
+            },
+            _id: '5d94b7ded125030d30925750',
+            value: 999,
+            description: 'Item do teste do POST',
+            type: 'debit',
+            installments: null,
+            __v: 0
+          };
+        });
+        chai
+          .request(app)
+          .get(`${basePath}/transactions/5d94b7ded125030d30925750`)
+          .end((err, res) => {
+            if (err) done(err);
+            const { body, status } = res;
+            expect(status).to.equal(200);
+            expect(body).to.be.a('object');
+            expect(body).to.contain.property('_id');
+            done();
+          });
+      }
+    );
   });
 });

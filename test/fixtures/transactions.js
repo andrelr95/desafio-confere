@@ -60,7 +60,6 @@ module.exports = [
     }
   }
 ];
-
 // {
 //   value: 100.0, // Valor da transação
 //   description: "Bicicleta ZXY Aro 21", // Descrição da transação
