@@ -1,4 +1,6 @@
 const Transaction = require('../models/transaction');
+const utils = require('../utils/validate-card');
+const errorFactory = require('../utils/error-factory');
 
 exports.getAllTransactions = async (req, res) => {
   const data = await Transaction.find();
@@ -12,7 +14,23 @@ exports.getTransactionById = async (req, res) => {
 };
 
 exports.saveTransaction = async (req, res) => {
-  const { body } = req;
-  const result = await Transaction.create(body);
-  res.status(201).send(result);
+  let { body } = req;
+  const cardNumber = utils.extractCardLastNumbers(body.card.number);
+
+  if (!cardNumber.isValid) {
+    res.status(400).send(errorFactory.badRequest('Cartão inválido'));
+  }
+  body = {
+    ...body,
+    card: {
+      ...body.card,
+      number: cardNumber.lastNumbers
+    }
+  };
+  try {
+    const result = await Transaction.create(body);
+    res.status(201).send(result);
+  } catch (err) {
+    res.status(500);
+  }
 };

@@ -79,7 +79,7 @@ mocha.describe('Unit tests for Transaction', () => {
         sinon.stub(Transaction, 'create').callsFake(() => {
           return {
             card: {
-              number: '5200555500005555',
+              number: '6746',
               expiry: '02/21',
               cvv: '432',
               holder: 'Tal de Ferreira'
@@ -101,7 +101,7 @@ mocha.describe('Unit tests for Transaction', () => {
             type: 'debit',
             installments: null,
             card: {
-              number: '5200555500005555',
+              number: '5242248646246746',
               expiry: '02/21',
               cvv: '432',
               holder: 'Tal de Ferreira'
@@ -110,6 +110,8 @@ mocha.describe('Unit tests for Transaction', () => {
           .end((err, res) => {
             expect(res.status).to.equal(201);
             expect(res.body).to.contain.property('_id');
+            expect(res.body.card.number).to.have.length(4);
+            expect(res.body.card.number).to.equal('6746');
             done();
           });
       }
