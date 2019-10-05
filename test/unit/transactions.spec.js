@@ -3,7 +3,7 @@ const MongoMemoryServer = require('mongodb-memory-server').MongoMemoryServer;
 const chai = require('chai');
 const mongoose = require('mongoose');
 const Transaction = require('../../src/models/transaction');
-// const TransactionMock = require('../../src/models/transaction');
+const transactionRepository = require('../../src/repositories/transaction');
 const transactionJson = require('../fixtures/transactions');
 const chaiHttp = require('chai-http');
 const app = require('./../../server');
@@ -27,10 +27,8 @@ mocha.before(done => {
       });
     })
     .then(async () => {
-      // await Transaction.insertMany(transactionJson);
       done();
     });
-  // TransactionMock.find = async () => transactionJson;
 });
 
 mocha.beforeEach(done => {
@@ -76,7 +74,7 @@ mocha.describe('Unit tests for Transaction', () => {
     mocha.it(
       'Unit - calls POST "/transactions" and saves data correclty',
       done => {
-        sinon.stub(Transaction, 'create').callsFake(() => {
+        sinon.stub(transactionRepository, 'insert').callsFake(() => {
           return {
             card: {
               number: '6746',

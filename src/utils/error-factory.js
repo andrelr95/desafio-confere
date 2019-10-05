@@ -8,3 +8,14 @@ exports.badRequest = (message, err) => {
     }
   };
 };
+
+exports.internalServerError = (message, err) => {
+  return {
+    error: {
+      code: 500,
+      description: 'Internal server error',
+      message,
+      stack: err
+    }
+  };
+}

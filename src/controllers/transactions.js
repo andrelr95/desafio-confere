@@ -1,3 +1,4 @@
+const transactionRepository = require('../repositories/transaction');
 const Transaction = require('../models/transaction');
 const utils = require('../utils/validate-card');
 const errorFactory = require('../utils/error-factory');
@@ -28,7 +29,7 @@ exports.saveTransaction = async (req, res) => {
     }
   };
   try {
-    const result = await Transaction.create(body);
+    const result = await transactionRepository.insert(body);
     res.status(201).send(result);
   } catch (err) {
     res.status(500);
