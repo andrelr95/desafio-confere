@@ -7,6 +7,5 @@ exports.insert = async (body) => {
   } catch(err) {
     result = errorFactory.internalServerError('Erro ao salvar na base de dados.', err);
   }
-
   return result
 }
